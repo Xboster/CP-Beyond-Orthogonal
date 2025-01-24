@@ -3,7 +3,7 @@ class Movement extends Phaser.Scene {
         super("movementScene");
     }
     init() {
-        this.PLAYER_VELOCITY = 5;
+        this.PLAYER_VELOCITY = 350;
     }
     preload() {
         this.load.spritesheet(
@@ -17,27 +17,97 @@ class Movement extends Phaser.Scene {
 
     create() {
         this.cameras.main.setBackgroundColor("0xDDDDDD");
-        this.player = this.add
+        this.player = this.physics.add
             .sprite(width / 2, height / 2, "character")
             .setScale(2);
+        this.player.body.setCollideWorldBounds();
+        this.player.body.setSize(32, 32);
+        this.player.body.setOffset(8, 16);
+
+        this.anims.create({
+            key: "idle-down",
+            frameRate: 0,
+            repeat: -1,
+            frames: this.anims.generateFrameNumbers("character", {
+                start: 1,
+                end: 1,
+            }),
+        });
+
+        this.anims.create({
+            key: "walk-down",
+            frameRate: 4,
+            repeat: -1,
+            frames: this.anims.generateFrameNumbers("character", {
+                start: 0,
+                end: 2,
+            }),
+        });
+        this.anims.create({
+            key: "walk-left",
+            frameRate: 4,
+            repeat: -1,
+            frames: this.anims.generateFrameNumbers("character", {
+                start: 3,
+                end: 5,
+            }),
+        });
+        this.anims.create({
+            key: "walk-right",
+            frameRate: 4,
+            repeat: -1,
+            frames: this.anims.generateFrameNumbers("character", {
+                start: 6,
+                end: 8,
+            }),
+        });
+        this.anims.create({
+            key: "walk-up",
+            frameRate: 4,
+            repeat: -1,
+            frames: this.anims.generateFrameNumbers("character", {
+                start: 9,
+                end: 11,
+            }),
+        });
 
         cursors = this.input.keyboard.createCursorKeys();
     }
 
     update() {
-        // left/Right
+        let playerVector = new Phaser.Math.Vector2(0, 0);
+        let playerDirection = "down";
         if (cursors.left.isDown) {
-            this.player.x -= this.PLAYER_VELOCITY;
+            playerVector.x = -1;
+            playerDirection = "left";
         }
         if (cursors.right.isDown) {
-            this.player.x += this.PLAYER_VELOCITY;
+            playerVector.x = 1;
+            playerDirection = "right";
         }
-        // Up/Down
         if (cursors.up.isDown) {
-            this.player.y -= this.PLAYER_VELOCITY;
+            playerVector.y = -1;
+            playerDirection = "up";
         }
         if (cursors.down.isDown) {
-            this.player.y += this.PLAYER_VELOCITY;
+            playerVector.y = 1;
+            playerDirection = "down";
         }
+
+        playerVector.normalize();
+
+        // this.player.x += playerVector.x * this.PLAYER_VELOCITY;
+        // this.player.y += playerVector.y * this.PLAYER_VELOCITY;
+
+        this.player.setVelocity(
+            this.PLAYER_VELOCITY * playerVector.x,
+            this.PLAYER_VELOCITY * playerVector.y
+        );
+        let playerMovement;
+
+        playerVector.length()
+            ? (playerMovement = "walk")
+            : (playerMovement = "idle");
+        this.player.play(playerMovement + "-" + playerDirection, true);
     }
 }
